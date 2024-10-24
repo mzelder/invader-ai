@@ -1,0 +1,1 @@
+Tasks: - functionality of moving spaceship (Maciek z) - generating bullets that can hit spaceship from the top of the screen
