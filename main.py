@@ -1,9 +1,11 @@
-from objects import Bullet  # Import the Bullet class
-from objects import SpaceShip  # Import the SpaceShip class
-from objects import Lives  # Import the Lives class
-import pygame
-import sys
 import random
+import sys
+
+import pygame
+
+from objects import Bullet  # Import the Bullet class
+from objects import Lives  # Import the Lives class
+from objects import SpaceShip  # Import the SpaceShip class
 
 # Set the dimensions of the game window
 WIDTH, HEIGHT = 800, 600
@@ -47,8 +49,9 @@ def main():
             if bullet.y > HEIGHT:
                 bullets.remove(bullet)
             # Check for collision between bullet and spaceship
-            elif (bullet.y + bullet.size >= spaceship.y and bullet.y <= spaceship.y + spaceship.size and # Check if the bullet is in the same y position as the spaceship
-                  bullet.x + bullet.size >= spaceship.x and bullet.x <= spaceship.x + spaceship.size): # Check if the bullet is in the same x position as the spaceship
+            elif (
+                    bullet.y + bullet.size >= spaceship.y and bullet.y <= spaceship.y + spaceship.size and  # Check if the bullet is in the same y position as the spaceship
+                    bullet.x + bullet.size >= spaceship.x and bullet.x <= spaceship.x + spaceship.size):  # Check if the bullet is in the same x position as the spaceship
                 lives.decrease()  # Decrease lives if bullet hits the spaceship
                 bullets.remove(bullet)  # Remove the bullet
 
@@ -72,7 +75,7 @@ def main():
             font = pygame.font.Font(None, 74)
             game_over_text = font.render("Game Over", True, (255, 0, 0))
             window.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() //
-                        2, HEIGHT // 2 - game_over_text.get_height() // 2))
+                                         2, HEIGHT // 2 - game_over_text.get_height() // 2))
             pygame.display.flip()
             pygame.time.wait(3000)  # Wait for 3 seconds before exiting
             sys.exit()

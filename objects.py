@@ -1,6 +1,5 @@
 import pygame
 
-
 class SpaceShip:
     def __init__(self, width, height):
         # Initialize the spaceship with size, color, position, and speed
