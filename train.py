@@ -1,4 +1,3 @@
-import torch
 from env import AInvaderEnv
 from dqn_agent import DQNAgent
 
@@ -7,7 +6,7 @@ env = AInvaderEnv()
 agent = DQNAgent(state_dim=4, action_dim=4)
 
 # Set the number of episodes for training
-num_episodes = 500
+num_episodes = 3
 
 # Loop over each episode
 for episode in range(num_episodes):

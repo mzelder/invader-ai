@@ -20,7 +20,7 @@ def main():
     font = pygame.font.Font(None, 48)
     spaceship = SpaceShip(WIDTH, HEIGHT)  # Create a SpaceShip object
     bullets = []  # List to store bullets
-    lives = Lives(3, 10, 10)  # Create a Lives object with 3 initial lives
+    lives = Lives(1, 10, 10)  # Create a Lives object with 3 initial lives
 
     while True:
         clock.tick(60)  # Set the frame rate to 60 frames per second

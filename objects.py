@@ -3,6 +3,8 @@ import pygame
 class SpaceShip:
     def __init__(self, width, height):
         # Initialize the spaceship with size, color, position, and speed
+        self.height = height
+        self.width = width
         self.size = 25
         self.color = (255, 0, 0)
         self.x = width // 2
@@ -15,15 +17,19 @@ class SpaceShip:
                          (self.x, self.y, self.size, self.size))
 
     def forward(self):
+        if self.y - self.speed <= 0: return None
         self.y -= self.speed
 
     def backward(self):
+        if self.y + self.speed >= self.height - self.size: return None
         self.y += self.speed
 
     def left(self):
+        if self.x - self.speed <= 0: return None
         self.x -= self.speed
 
     def right(self):
+        if self.x + self.speed >= self.width - self.size: return None
         self.x += self.speed
 
 

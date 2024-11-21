@@ -19,7 +19,7 @@ class AInvaderEnv(gym.Env):
         # Initialize game objects
         self.spaceship = SpaceShip(WIDTH, HEIGHT)
         self.bullets = []
-        self.lives = Lives(3, 10, 10)
+        self.lives = Lives(1, 10, 10)
 
         # Define action and observation space
         self.action_space = spaces.Discrete(4)  # Actions: [0=up, 1=down, 2=left, 3=right]
@@ -29,7 +29,7 @@ class AInvaderEnv(gym.Env):
         # Reset the game state
         self.spaceship = SpaceShip(WIDTH, HEIGHT)
         self.bullets = []
-        self.lives = Lives(3, 10, 10)
+        self.lives = Lives(1, 10, 10)
         return self._get_state()
 
     def _get_state(self):

@@ -1,4 +1,5 @@
 import random
+import numpy as np
 from collections import deque
 import torch
 import torch.nn as nn
@@ -59,11 +60,11 @@ class DQNAgent:
         states, actions, rewards, next_states, dones = zip(*batch)
 
         # Convert batch data to tensors
-        states = torch.tensor(states, dtype=torch.float32)
-        actions = torch.tensor(actions)
-        rewards = torch.tensor(rewards)
-        next_states = torch.tensor(next_states, dtype=torch.float32)
-        dones = torch.tensor(dones, dtype=torch.float32)
+        states = torch.tensor(np.array(states), dtype=torch.float32)
+        actions = torch.tensor(np.array(actions))
+        rewards = torch.tensor(np.array(rewards))
+        next_states = torch.tensor(np.array(next_states), dtype=torch.float32)
+        dones = torch.tensor(np.array(dones), dtype=torch.float32)
 
         # Compute Q-values and targets
         q_values = self.model(states).gather(1, actions.unsqueeze(1)).squeeze()
