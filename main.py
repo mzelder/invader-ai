@@ -23,7 +23,7 @@ def main():
         # Reset environment for new episode
         spaceship = SpaceShip(WIDTH, HEIGHT)
         bullets = []
-        lives = Lives(3, 10, 10)
+        lives = Lives(1, 10, 10)
         score = 0
         done = False
 
