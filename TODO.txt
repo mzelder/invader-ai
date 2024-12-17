@@ -1,1 +1,4 @@
-Tasks: - functionality of moving spaceship (Maciek z) - generating bullets that can hit spaceship from the top of the screen (Maciek S)
+Tasks:
+optymalizajca kodu bo duzo zasobow zzera
+zapisywanie danych o decyzjach
+komentowanie tylko potrzebnych rzeczy
