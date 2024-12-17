@@ -1,84 +1,100 @@
+import pygame
 import random
 import sys
+from objects import SpaceShip, Bullet, Lives
+from agent import Agent
 
-import pygame
-
-from objects import Bullet  # Import the Bullet class
-from objects import Lives  # Import the Lives class
-from objects import SpaceShip  # Import the SpaceShip class
-
-# Set the dimensions of the game window
+# Game configuration
 WIDTH, HEIGHT = 800, 600
 window = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("AInvader")  # Set the title of the game window
+pygame.display.set_caption("AI Invader")
 clock = pygame.time.Clock()
 
 
 def main():
     pygame.init()
-    text_color = (255, 255, 255)  # Set the text color to white
-    font = pygame.font.Font(None, 48)
-    spaceship = SpaceShip(WIDTH, HEIGHT)  # Create a SpaceShip object
-    bullets = []  # List to store bullets
-    lives = Lives(1, 10, 10)  # Create a Lives object with 3 initial lives
+    agent = Agent()  # RL agent
+    total_score = 0  # Track total score across episodes
 
-    while True:
-        clock.tick(60)  # Set the frame rate to 60 frames per second
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
+    # Load the model if it exists
+    agent.load_model()
 
-        keys = pygame.key.get_pressed()  # Get the state of all keyboard buttons
-        if keys[pygame.K_UP]:
-            spaceship.forward()
-        if keys[pygame.K_DOWN]:
-            spaceship.backward()
-        if keys[pygame.K_LEFT]:
-            spaceship.left()
-        if keys[pygame.K_RIGHT]:
-            spaceship.right()
+    while True:  # Infinite loop for episodes
+        # Reset environment for new episode
+        spaceship = SpaceShip(WIDTH, HEIGHT)
+        bullets = []
+        lives = Lives(3, 10, 10)
+        score = 0
+        done = False
 
-        if random.randint(1, 20) == 1:  # Adjust the frequency as needed
-            bullet_x = random.randint(0, WIDTH)
-            # Add a new bullet at a random x position at the top
-            bullets.append(Bullet(bullet_x, 0))
+        while not done:
+            clock.tick(60)
 
-        # Update bullet positions
-        for bullet in bullets:
-            bullet.y += 5
-            if bullet.y > HEIGHT:
-                bullets.remove(bullet)
-            # Check for collision between bullet and spaceship
-            elif (
-                    bullet.y + bullet.size >= spaceship.y and bullet.y <= spaceship.y + spaceship.size and  # Check if the bullet is in the same y position as the spaceship
-                    bullet.x + bullet.size >= spaceship.x and bullet.x <= spaceship.x + spaceship.size):  # Check if the bullet is in the same x position as the spaceship
-                lives.decrease()  # Decrease lives if bullet hits the spaceship
-                bullets.remove(bullet)  # Remove the bullet
+            # Get current state
+            state = agent.get_state(spaceship, bullets, lives, WIDTH, HEIGHT)
+            
+            # Agent takes action
+            action = agent.act(state)
 
-        window.fill((0, 0, 0))
+            # Map action to game controls
+            if action == 0: spaceship.left()
+            elif action == 1: spaceship.right()
+            elif action == 2: spaceship.forward()
+            elif action == 3: spaceship.backward()
 
-        # Draw the spaceship
-        spaceship.create(window)
+            # Spawn bullets
+            if random.randint(1, 20) == 1:
+                bullets.append(Bullet(random.randint(0, WIDTH), 0))
 
-        # Draw bullets
-        for bullet in bullets:
-            bullet.create(window)
+            # Update bullet positions and check collisions
+            reward = 0
+            for bullet in bullets[:]:
+                bullet.y += 5
+                if bullet.y > HEIGHT:
+                    bullets.remove(bullet)
+                elif (
+                    bullet.y + bullet.size >= spaceship.y
+                    and bullet.y <= spaceship.y + spaceship.size
+                    and bullet.x + bullet.size >= spaceship.x
+                    and bullet.x <= spaceship.x + spaceship.size
+                ):
+                    bullets.remove(bullet)
+                    lives.decrease()
+                    reward = -10
 
-        # Draw lives
-        lives.draw(window)
+            if lives.is_out_of_lives():
+                done = True
+                reward -= 50  # Additional penalty for losing
+            else:
+                reward += 1  # Reward for surviving a frame
 
-        pygame.display.flip()
-
-        # Check if the spaceship is out of lives
-        if lives.is_out_of_lives():
-            # Display "Game Over" text
-            font = pygame.font.Font(None, 74)
-            game_over_text = font.render("Game Over", True, (255, 0, 0))
-            window.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() //
-                                         2, HEIGHT // 2 - game_over_text.get_height() // 2))
+            # Update the display
+            window.fill((0, 0, 0))
+            spaceship.create(window)
+            for bullet in bullets:
+                bullet.create(window)
+            lives.draw(window)
             pygame.display.flip()
-            pygame.time.wait(3000)  # Wait for 3 seconds before exiting
-            sys.exit()
+
+            # Get the next state and train agent
+            next_state = agent.get_state(spaceship, bullets, lives, WIDTH, HEIGHT)
+            agent.train_short_memory(state, action, reward, next_state, done)
+            agent.remember(state, action, reward, next_state, done)
+
+            score += reward
+
+        # After the episode ends, train the agent on long memory
+        agent.train_long_memory()
+
+        # Track total score and print episode results
+        total_score += score
+        print(f"Episode complete! Score: {score}, Total Score: {total_score}")
+
+        # Save the model after each episode
+        agent.save_model()
+
+        # Increment game count
+        agent.n_games += 1
 
 
 if __name__ == "__main__":
