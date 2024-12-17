@@ -16,18 +16,37 @@ class Linear_QNet(nn.Module):
         return x
 
     def save(self, file_name='model.pth'):
+        # Define a clean model folder path
         model_folder_path = './model'
+
+        # Combine the folder path and file name properly
+        full_file_path = os.path.join(model_folder_path, file_name)
+        print(f"XD: {full_file_path}")
+
+        # Save the model's state dictionary
+        with open(full_file_path, "w") as f:
+            pass
+        torch.save(self.state_dict(), full_file_path)
+        
+
+    def load(self, file_name='model.pth'):
+        # Define the model folder and file paths
+        model_folder_path = './model'
+        full_file_path = os.path.join(model_folder_path, file_name)
+
+        # Ensure the directory exists
         if not os.path.exists(model_folder_path):
             os.makedirs(model_folder_path)
 
-        file_name = os.path.join(model_folder_path, file_name)
-        torch.save(self.state_dict(), file_name)
+        # Check if the file exists; if not, print a warning and initialize an empty model
+        if not os.path.exists(full_file_path):
+            print(f"No saved model found at {full_file_path}. Initializing a new model.")
+            self.save(file_name)  # Save an empty model for future use
+            return
 
-    def load(self, file_name='model.pth'):
-        file_path = os.path.join('./model', file_name)
-        if os.path.exists(file_path):
-            self.load_state_dict(torch.load(file_path))
-            self.eval()
+        # Load the model's state dictionary
+        self.load_state_dict(torch.load(full_file_path))
+        self.eval()
 
 
 class QTrainer:

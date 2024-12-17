@@ -3,13 +3,15 @@ import random
 import sys
 from objects import SpaceShip, Bullet, Lives
 from agent import Agent
+from helper import plot
 
 # Game configuration
 WIDTH, HEIGHT = 800, 600
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("AI Invader")
 clock = pygame.time.Clock()
-
+plot_scores = []
+plot_mean_scores = []
 
 def main():
     pygame.init()
@@ -43,8 +45,8 @@ def main():
             elif action == 3: spaceship.backward()
 
             # Spawn bullets
-            if random.randint(1, 20) == 1:
-                bullets.append(Bullet(random.randint(0, WIDTH), 0))
+            #if random.randint(1, 20) == 1:
+            bullets.append(Bullet(random.randint(0, WIDTH), 0))
 
             # Update bullet positions and check collisions
             reward = 0
@@ -87,14 +89,18 @@ def main():
         agent.train_long_memory()
 
         # Track total score and print episode results
-        total_score += score
         print(f"Episode complete! Score: {score}, Total Score: {total_score}")
-
+        
         # Save the model after each episode
         agent.save_model()
 
         # Increment game count
+        plot_scores.append(score)
+        total_score += score
         agent.n_games += 1
+        mean_score = total_score / agent.n_games
+        plot_mean_scores.append(mean_score)
+        plot(plot_scores, plot_mean_scores)
 
 
 if __name__ == "__main__":

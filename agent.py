@@ -51,13 +51,7 @@ class Agent:
         self.trainer.train_step(states, actions, rewards, next_states, dones)
 
     def save_model(self):
-        self.model.save(self.model_path)
-        print(f"Model saved to {self.model_path}")
+        self.model.save()
 
     def load_model(self):
-        if os.path.exists(self.model_path):
-            self.model.load_state_dict(torch.load(self.model_path))
-            self.model.eval()  # Set the model to evaluation mode
-            print(f"Model loaded from {self.model_path}")
-        else:
-            print(f"No saved model found at {self.model_path}")
+        self.model.load()
