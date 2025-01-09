@@ -1,5 +1,7 @@
 import pygame
 
+multiplier = 2
+
 class SpaceShip:
     def __init__(self, width, height):
         # Initialize the spaceship with size, color, position, and speed
@@ -9,7 +11,7 @@ class SpaceShip:
         self.color = (255, 0, 0)
         self.x = width // 2
         self.y = height - self.size
-        self.speed = 10
+        self.speed = 10 * multiplier
 
     def create(self, window):
         # Draw the spaceship on the game window
@@ -36,11 +38,11 @@ class SpaceShip:
 class Bullet:
     def __init__(self, x, y):
         # Initialize the bullet with size, color, position, and speed
-        self.size = 5
+        self.size = 20
         self.color = (255, 255, 255)
         self.x = x
         self.y = y
-        self.speed = 10
+        self.speed = 10 * multiplier
 
     def create(self, window):
         # Draw the bullet on the game window

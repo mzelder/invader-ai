@@ -45,8 +45,8 @@ def main():
             elif action == 3: spaceship.backward()
 
             # Spawn bullets
-            #if random.randint(1, 20) == 1:
-            bullets.append(Bullet(random.randint(0, WIDTH), 0))
+            if random.randint(1, 20) == 1:
+                bullets.append(Bullet(random.randint(0, WIDTH), 0))
 
             # Update bullet positions and check collisions
             reward = 0

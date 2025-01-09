@@ -21,7 +21,6 @@ class Linear_QNet(nn.Module):
 
         # Combine the folder path and file name properly
         full_file_path = os.path.join(model_folder_path, file_name)
-        print(f"XD: {full_file_path}")
 
         # Save the model's state dictionary
         with open(full_file_path, "w") as f:
