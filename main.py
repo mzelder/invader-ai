@@ -21,7 +21,7 @@ def main():
     # Load the model if it exists
     agent.load_model()
 
-    for _ in range(50):  # Infinite loop for episodes
+    for _ in range(5000):  # Infinite loop for episodes
         # Reset environment for new episode
         spaceship = SpaceShip(WIDTH, HEIGHT)
         bullets = []
