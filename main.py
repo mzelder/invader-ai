@@ -21,7 +21,7 @@ def main():
     # Load the model if it exists
     agent.load_model()
 
-    while True:  # Infinite loop for episodes
+    for _ in range(50):  # Infinite loop for episodes
         # Reset environment for new episode
         spaceship = SpaceShip(WIDTH, HEIGHT)
         bullets = []
@@ -45,13 +45,13 @@ def main():
             elif action == 3: spaceship.backward()
 
             # Spawn bullets
-            if random.randint(1, 20) == 1:
+            if random.randint(1, 5) == 1:
                 bullets.append(Bullet(random.randint(0, WIDTH), 0))
 
             # Update bullet positions and check collisions
             reward = 0
             for bullet in bullets[:]:
-                bullet.y += 5
+                bullet.move()
                 if bullet.y > HEIGHT:
                     bullets.remove(bullet)
                 elif (
