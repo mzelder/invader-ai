@@ -12,6 +12,8 @@ pygame.display.set_caption("AI Invader")
 clock = pygame.time.Clock()
 plot_scores = []
 plot_mean_scores = []
+episodes = 1000
+BULLET_SPAWN_INTERVAL = 60
 
 def main():
     pygame.init()
@@ -21,16 +23,19 @@ def main():
     # Load the model if it exists
     agent.load_model()
 
-    for _ in range(50):  # Infinite loop for episodes
+    for _ in range(episodes):
         # Reset environment for new episode
         spaceship = SpaceShip(WIDTH, HEIGHT)
         bullets = []
         lives = Lives(1, 10, 10)
         score = 0
         done = False
+        frame_counter = 0
 
         while not done:
             clock.tick(60)
+            frame_counter += 1
+            reward = 0
 
             # Get current state
             state = agent.get_state(spaceship, bullets, lives, WIDTH, HEIGHT)
@@ -38,18 +43,22 @@ def main():
             # Agent takes action
             action = agent.act(state)
 
-            # Map action to game controls
+            # Map action to game controls (left or right only)
             if action == 0: spaceship.left()
             elif action == 1: spaceship.right()
-            elif action == 2: spaceship.forward()
-            elif action == 3: spaceship.backward()
 
-            # Spawn bullets
-            if random.randint(1, 5) == 1:
-                bullets.append(Bullet(random.randint(0, WIDTH), 0))
+            # Spawn bullets at consistent intervals
+            if frame_counter % BULLET_SPAWN_INTERVAL == 0:
+                # Random 5 bullets
+                for _ in range(5):
+                    bullets.append(Bullet(random.randint(0, WIDTH), 0))
+                # Bullet on the left side of the screen
+                bullets.append(Bullet(0, 0))
+                # Bullet on the right side of the screen
+                bullets.append(Bullet(WIDTH - 20, 0))  # Adjust `20` based on bullet width
 
             # Update bullet positions and check collisions
-            reward = 0
+            reward += 1  # Reward for surviving a frame
             for bullet in bullets[:]:
                 bullet.move()
                 if bullet.y > HEIGHT:
@@ -62,13 +71,11 @@ def main():
                 ):
                     bullets.remove(bullet)
                     lives.decrease()
-                    reward = -10
 
+            # Check if game is over
             if lives.is_out_of_lives():
                 done = True
-                reward -= 50  # Additional penalty for losing
-            else:
-                reward += 1  # Reward for surviving a frame
+                reward -= 50
 
             # Update the display
             window.fill((0, 0, 0))

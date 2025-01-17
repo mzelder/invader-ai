@@ -9,7 +9,7 @@ class SpaceShip:
         self.color = (255, 0, 0)
         self.x = width // 2
         self.y = height - self.size
-        self.speed = 10
+        self.speed = 5
 
     def create(self, window):
         # Draw the spaceship on the game window
@@ -36,7 +36,7 @@ class SpaceShip:
 class Bullet:
     def __init__(self, x, y):
         # Initialize the bullet with size, color, position, and speed
-        self.size = 20
+        self.size = 30
         self.color = (255, 255, 255)
         self.x = x
         self.y = y
