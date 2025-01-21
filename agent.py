@@ -3,76 +3,118 @@ import random
 import numpy as np
 from collections import deque
 from model import Linear_QNet, QTrainer
-import os
+from objects import Bullet
+from game import InvaderAI
+from helper import plot
+
+MAX_MEMORY = 100_000
+BATCH_SIZE = 1000
+LR = 0.001
 
 class Agent:
     def __init__(self):
         self.n_games = 0
-        self.epsilon = 1.0  # Start with full exploration
-        self.epsilon_min = 0.01  # Minimum exploration rate
-        self.epsilon_decay = 0.995  # Decay factor for epsilon
+        self.epsilon = 0
         self.gamma = 0.9
-        self.memory = deque(maxlen=100_000)
-        self.model = Linear_QNet(4, 256, 2)
-        self.trainer = QTrainer(self.model, lr=0.001, gamma=self.gamma)
+        self.memory = deque(maxlen=MAX_MEMORY)
+        self.model = Linear_QNet(12, 256, 2)
+        self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
         
-    def get_state(self, spaceship, bullets, lives, WIDTH, HEIGHT):
-        # State could include:
-        # - spaceship position (x, y)
-        # - closest bullet's position (if any)
-        # - distance to nearest bullet
-        # - spaceship's speed
-        # - number of lives left
+    def get_state(self, spaceship, bullets):
         state = [
-            spaceship.x / WIDTH,  # Normalize position of spaceship
-            spaceship.y / HEIGHT,  # Normalize position of spaceship
-            lives.lives,  # Number of lives left
+            spaceship.x,
+            spaceship.y,
         ]
+        
+        for i, bullet in enumerate(bullets):
+            state.append(bullet.x)
+            state.append(bullet.y)
+            print(f"Pocisk nr {i}: X: {bullet.x}, Y: {bullet.y}")
 
-        # Include distance to nearest bullet
-        if bullets:  # Check if there are any bullets
-            closest_bullet_distance = min(abs(bullet.x - spaceship.x) for bullet in bullets)
-        else:
-            closest_bullet_distance = WIDTH  # No bullets: Set max possible distance
-
-        state.append(closest_bullet_distance / WIDTH)  # Normalize distance to nearest bullet
-        print(closest_bullet_distance)
-        return state
-
-
-    def act(self, state):
-        # Decay epsilon after each game
-        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
-
-        if random.random() < self.epsilon:
-            print("HERE")
-            # Exploration: Random action
-            move = random.randint(0, 1)
-        else:
-            # Exploitation: Predict the best action
-            state_tensor = torch.tensor(state, dtype=torch.float).unsqueeze(0)
-            prediction = self.model(state_tensor)
-            move = torch.argmax(prediction).item()
-        return move
+        while len(state) < 12:
+            state.append(0)
+        
+        return np.array(state, dtype=int)
 
 
     def remember(self, state, action, reward, next_state, done):
-        self.memory.append((state, action, reward, next_state, done))
-
-    def train_short_memory(self, state, action, reward, next_state, done):
-        self.trainer.train_step(state, action, reward, next_state, done)
+        self.memory.append((state, action, reward, next_state, done)) # popleft if MAX_MEMORY is reached
 
     def train_long_memory(self):
-        if len(self.memory) > 1000:
-            mini_sample = random.sample(self.memory, 1000)
+        if len(self.memory) > BATCH_SIZE:
+            mini_sample = random.sample(self.memory, BATCH_SIZE) # list of tuples
         else:
             mini_sample = self.memory
 
         states, actions, rewards, next_states, dones = zip(*mini_sample)
         self.trainer.train_step(states, actions, rewards, next_states, dones)
+        #for state, action, reward, nexrt_state, done in mini_sample:
+        #    self.trainer.train_step(state, action, reward, next_state, done)
 
-    def save_model(self):
-        self.model.save()
+    def train_short_memory(self, state, action, reward, next_state, done):
+        self.trainer.train_step(state, action, reward, next_state, done)
 
-    def load_model(self):
-        self.model.load()
+    def get_action(self, state):
+        self.epsilon = 80 - self.n_games
+        if random.randint(0, 200) < self.epsilon:
+            move = random.randint(0, 1)
+            #print(f"random {move}")
+        else:
+            state0 = torch.tensor(state, dtype=torch.float)
+            prediction = self.model(state0)
+            move = torch.argmax(prediction).item()
+            #print(f"predicted {move}")
+        return move
+
+def train():    
+    plot_scores = []
+    plot_mean_scores = []
+    total_score = 0
+    record = 0
+    agent = Agent()
+    game = InvaderAI()
+    while True:
+        # Get old state
+        state_old = agent.get_state(
+            game.spaceship, 
+            game.bullets
+        )
+
+        # get move
+        final_move = agent.get_action(state_old)
+
+        # perform move and get new state
+        reward, done, score = game.play_step(final_move)
+        state_new = agent.get_state(
+            game.spaceship, 
+            game.bullets, 
+        )
+
+        # train short memory
+        agent.train_short_memory(state_old, final_move, reward, state_new, done)
+
+        # remember
+        agent.remember(state_old, final_move, reward, state_new, done)
+
+        if done:
+            # train long memory, plot result
+            game.reset()
+            agent.n_games += 1
+            agent.train_long_memory()
+
+            if score > record:
+                record = score
+                agent.model.save()
+
+            print('Game', agent.n_games, 'Score', score, 'Record:', record)
+
+            plot_scores.append(score)
+            total_score += score
+            mean_score = total_score / agent.n_games
+            plot_mean_scores.append(mean_score)
+            plot(plot_scores, plot_mean_scores)
+
+
+if __name__ == '__main__':
+    train()
+    
