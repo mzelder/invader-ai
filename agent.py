@@ -17,7 +17,7 @@ class Agent:
         self.epsilon = 0
         self.gamma = 0.9
         self.memory = deque(maxlen=MAX_MEMORY)
-        self.model = Linear_QNet(12, 256, 2)
+        self.model = Linear_QNet(3, 512, 2)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
         
     def get_state(self, spaceship, bullets):
@@ -26,14 +26,19 @@ class Agent:
             spaceship.y,
         ]
         
-        for i, bullet in enumerate(bullets):
-            state.append(bullet.x)
-            state.append(bullet.y)
-            print(f"Pocisk nr {i}: X: {bullet.x}, Y: {bullet.y}")
-
-        while len(state) < 12:
+        # Check if bullet in front or not
+        for bullet in bullets:
+            if bullet.x >= spaceship.x and bullet.x <= spaceship.x + spaceship.size and bullet.y > spaceship.y:
+                state.append(1)  # Bullet is in front
+                print("BULLET")
+                break
+                
+            else:
+                state.append(0)  # Bullet is not in front
+                break
+        else:
             state.append(0)
-        
+
         return np.array(state, dtype=int)
 
 
