@@ -38,6 +38,7 @@ class InvaderAI:
         if self.frame_iteration % SPAWN_RATE == 0:
             for i in range(5):
                 self.bullets.append(Bullet(i * 100, 0, SPEED))
+                # self.bullets.append(random.randint(0, 450), 0, SPEED)
 
 
     def play_step(self, action):
