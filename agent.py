@@ -7,7 +7,7 @@ from objects import Bullet
 from game import InvaderAI
 from helper import plot
 
-MAX_MEMORY = 500_000
+MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
 LR = 0.001
 
@@ -17,48 +17,38 @@ class Agent:
         self.epsilon = 0
         self.gamma = 0.9
         self.memory = deque(maxlen=MAX_MEMORY)
-        self.model = Linear_QNet(5, 512, 3)
+        self.model = Linear_QNet(4, 256, 3)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
         
     def get_state(self, spaceship, bullets):
         state = [
             spaceship.x,
-            spaceship.y,
         ]
-        directions = [0, 0, 0]
-        
+
         front = False
         left = False
         right = False
 
         for bullet in bullets:
+            # Check if a bullet is in front
             if spaceship.x - spaceship.size < bullet.x < spaceship.x + spaceship.size:
                 front = True
-                break
-            else:
-                front = False
-                
+            
+            # Check if a bullet is on the left
             if (
-                bullet.x <= spaceship.x - bullet.size  and 
+                bullet.x <= spaceship.x - bullet.size and
                 bullet.x >= spaceship.x - spaceship.size * 2 and
-                spaceship.y - spaceship.size * 8 <= bullet.y <= spaceship.y + spaceship.size
+                spaceship.y - spaceship.size * 16 <= bullet.y <= spaceship.y + spaceship.size
             ):
                 left = True
-                break
-            else:
-                left = False
 
+            # Check if a bullet is on the right
             if (
-                bullet.x >= spaceship.x + spaceship.size and  
-                bullet.x <= spaceship.x + spaceship.size * 2 and  
-                spaceship.y - spaceship.size * 8 <= bullet.y <= spaceship.y + spaceship.size
+                bullet.x >= spaceship.x + spaceship.size and
+                bullet.x <= spaceship.x + spaceship.size * 2 and
+                spaceship.y - spaceship.size * 16 <= bullet.y <= spaceship.y + spaceship.size
             ):
                 right = True
-                break
-            else:
-                right = False
-        else:
-            directions = [0, 0, 0]
 
 
         directions = [int(front), int(left), int(right)]
@@ -85,7 +75,7 @@ class Agent:
         self.trainer.train_step(state, action, reward, next_state, done)
 
     def get_action(self, state):
-        self.epsilon = 1000 - self.n_games
+        self.epsilon = 500 - self.n_games
         if random.randint(0, 200) < self.epsilon:
             move = random.randint(0, 2)
             #print(f"random {move}")

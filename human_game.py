@@ -1,5 +1,6 @@
 import pygame
 import random
+import math
 from objects import SpaceShip, Bullet
 from enum import Enum
 
@@ -11,7 +12,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (200, 0, 0)
 
-SPEED = 10
+SPEED = 20
 SPAWN_RATE = 30
 
 class Direction(Enum):
@@ -35,9 +36,9 @@ class InvaderGame:
 
     def _spawn_bullets(self):
         if self.frame_iteration % SPAWN_RATE == 0:
-            for i in range(5):
-                self.bullets.append(Bullet(i * 100, 0, SPEED))
-
+            for i in range(15):
+                self.bullets.append(Bullet(random.randint(0, 640), 0, SPEED))
+                
     def play_step(self):
         self.frame_iteration += 1
 
@@ -46,12 +47,6 @@ class InvaderGame:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
-            self.spaceship.left()
-        if keys[pygame.K_RIGHT]:
-            self.spaceship.right()
 
         # Drop bullets
         self._spawn_bullets()
@@ -71,48 +66,56 @@ class InvaderGame:
             game_over = True
             #return game_over, self.score
 
+        # AI Decision-Making (using fake Q-learning simulation)
+        state = self.get_state()
+        self.ai_decision(state)
+
+        # Update UI and clock
+        self._update_ui()
+        self.clock.tick(SPEED)
+
+        return game_over, self.score
+
+    def get_state(self):
+        # Returns the state as a list indicating whether bullets are coming from the front, left, or right
         state = []
         front = False
         left = False
         right = False
 
         for bullet in self.bullets:
+            # Check if a bullet is in front
             if self.spaceship.x - self.spaceship.size < bullet.x < self.spaceship.x + self.spaceship.size:
                 front = True
-                break
-            else:
-                front = False
-                
-            
+
+            # Check if a bullet is on the left
             if (
-                bullet.x <= self.spaceship.x - bullet.size  and 
+                bullet.x <= self.spaceship.x - bullet.size and
                 bullet.x >= self.spaceship.x - self.spaceship.size * 2 and
-                self.spaceship.y - self.spaceship.size * 8 <= bullet.y <= self.spaceship.y + self.spaceship.size
+                self.spaceship.y - self.spaceship.size * 16 <= bullet.y <= self.spaceship.y + self.spaceship.size
             ):
                 left = True
-                break
-            else:
-                left = False
 
+            # Check if a bullet is on the right
             if (
-                bullet.x >= self.spaceship.x + self.spaceship.size and  
-                bullet.x <= self.spaceship.x + self.spaceship.size * 2 and  
-                self.spaceship.y - self.spaceship.size * 8 <= bullet.y <= self.spaceship.y + self.spaceship.size
+                bullet.x >= self.spaceship.x + self.spaceship.size and
+                bullet.x <= self.spaceship.x + self.spaceship.size * 2 and
+                self.spaceship.y - self.spaceship.size * 16 <= bullet.y <= self.spaceship.y + self.spaceship.size
             ):
                 right = True
-                break
-            else:
-                right = False
         
-        state = [int(front), int(left), int(right)]
-        print(state)
+        return [int(front), int(left), int(right)]
 
-    
-        # Update UI and clock
-        self._update_ui()
-        self.clock.tick(SPEED)
-
-        return game_over, self.score
+    def ai_decision(self, state):
+        # Fake Q-learning simulation for dodging bullets
+        # Based on the state, we choose a direction
+        if state[0] == 1:
+            # Bullet is in front, so move left or right randomly
+            move = random.randint(0, 1)
+            if move == 1:
+                self.spaceship.left()
+            else:
+                self.spaceship.right()
 
     def is_collision(self):
         for bullet in self.bullets:
@@ -143,5 +146,4 @@ if __name__ == "__main__":
         game_over, score = game.play_step()
 
         if game_over:
-            print(f"Game Over! Final Score: {score}")
-            
+            game.reset()

@@ -71,15 +71,17 @@ class InvaderAI:
             else:
                 front = False
 
-        if not front:
-            reward = 1
+        if not front and self.bullets:
+            reward += 1
             print("rewarded")
+        if front and self.bullets:
+            reward -= 1
         
         # 3. check if game is over
         game_over = False
         if self.is_collision():
             game_over = True
-            reward = -50
+            reward -= 50
             return reward, game_over, self.score
 
         # 5. update ui and clock
